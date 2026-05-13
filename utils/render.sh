@@ -96,7 +96,9 @@ else
   echo "Generating pdf from dot file"
   dot -Tps AttackGraph.dot > AttackGraph.eps
   epstopdf AttackGraph.eps
-  echo "If successfully produced, the attack graph should be in AttackGraph.pdf"
+  echo "Generating svg from dot file"
+  dot -Tsvg AttackGraph.dot > AttackGraph.svg
+  echo "If successfully produced, the attack graph should be in AttackGraph.pdf and AttackGraph.svg"
   if test -n "$PDF_READER"; then
       $PDF_READER AttackGraph.pdf&
   fi

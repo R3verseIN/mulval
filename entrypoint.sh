@@ -45,5 +45,8 @@ else
     else
         echo ""
         echo "✅ SUCCESS: MulVAL analysis completed."
+        echo "Visualizations generated in /output:"
+        echo " - AttackGraph.pdf"
+        echo " - AttackGraph.svg"
     fi
 fi

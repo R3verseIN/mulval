@@ -27,8 +27,11 @@ docker run --rm \
 ```
 
 ### 3. View Results
-Generated files will appear in your local `output/` folder:
-- **AttackGraph.pdf**: Visual attack graph (generated when `-v` is used).
+The tool generates several output files in the `/output` directory:
+- `AttackGraph.pdf`: Visual attack graph (PDF format)
+- `AttackGraph.svg`: Interactive/Scalable attack graph (SVG format)
+- `AttackGraph.dot`: Graphviz source file
+- `mulval_console.log`: Full execution logs
 - **AttackGraph.txt**: Textual representation.
 - **AttackGraph.xml**: XML representation.
 - **VERTICES.CSV / ARCS.CSV**: Raw graph data.

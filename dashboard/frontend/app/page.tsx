@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
-import { Play, FileText, Terminal as TerminalIcon, Download } from 'lucide-react';
+import { Play, FileText, Terminal as TerminalIcon, Download, Share2 } from 'lucide-react';
+import GraphViewer from '@/components/GraphViewer';
 
 export default function Home() {
   const [code, setCode] = useState<string>(`/* Sample MulVAL Datalog */
@@ -15,6 +16,7 @@ networkServiceInfo(server, httpd, tcp, 80, user).
   const [logs, setLogs] = useState<string[]>([]);
   const [status, setStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [svgUrl, setSvgUrl] = useState<string | null>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,6 +27,7 @@ networkServiceInfo(server, httpd, tcp, 80, user).
     setLogs([]);
     setStatus('running');
     setPdfUrl(null);
+    setSvgUrl(null);
 
     try {
       // 1. Save the code
@@ -60,9 +63,11 @@ networkServiceInfo(server, httpd, tcp, 80, user).
         });
       }
 
-      // 3. Load PDF if success
+      // 3. Load PDF & SVG if success
       if (status !== 'error') {
-        setPdfUrl(`/api/pdf?t=${Date.now()}`);
+        const timestamp = Date.now();
+        setPdfUrl(`/api/pdf?t=${timestamp}`);
+        setSvgUrl(`/api/svg?t=${timestamp}`);
       }
     } catch (err) {
       console.error(err);
@@ -129,19 +134,19 @@ networkServiceInfo(server, httpd, tcp, 80, user).
         {/* Output Section */}
         <div className="w-[45%] flex flex-col bg-black/40 backdrop-blur-sm">
           <div className="flex-1 flex flex-col min-h-0">
-            {/* PDF Preview */}
+            {/* Graph Preview */}
             <div className="flex-1 border-b border-white/10 relative bg-white/[0.02] flex flex-col">
               <div className="h-10 flex items-center justify-between px-4 bg-white/5 border-b border-white/10 text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
-                <span>Visual Graph Preview</span>
+                <span className="flex items-center gap-2"><Share2 size={12} /> Interactive Attack Graph</span>
                 {pdfUrl && (
                   <a href={pdfUrl} target="_blank" className="hover:text-white transition-colors flex items-center gap-1.5">
-                    <Download size={12} /> Download PDF
+                    <Download size={12} /> Export PDF
                   </a>
                 )}
               </div>
-              <div className="flex-1 flex items-center justify-center p-6">
-                {pdfUrl ? (
-                  <iframe src={pdfUrl} className="w-full h-full rounded-xl shadow-2xl border border-white/10 bg-white" />
+              <div className="flex-1 flex items-center justify-center p-6 relative">
+                {svgUrl ? (
+                  <GraphViewer svgUrl={svgUrl} />
                 ) : (
                   <div className="text-white/10 flex flex-col items-center gap-4">
                     <FileText size={64} strokeWidth={1} />

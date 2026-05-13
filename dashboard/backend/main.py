@@ -68,6 +68,13 @@ async def get_pdf():
         return FileResponse(pdf_path, media_type="application/pdf")
     return {"error": "PDF not found"}
 
+@app.get("/api/svg")
+async def get_svg():
+    svg_path = "/output/AttackGraph.svg"
+    if os.path.exists(svg_path):
+        return FileResponse(svg_path, media_type="image/svg+xml")
+    return {"error": "SVG not found"}
+
 # Serve the static files from the Next.js export (out directory)
 if os.path.exists("../frontend/out"):
     app.mount("/", StaticFiles(directory="../frontend/out", html=True), name="static")
