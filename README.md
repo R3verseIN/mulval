@@ -1,5 +1,43 @@
-# MulVAL
-###Multi host, multi stage Vulnerability Analysis tool
+# MulVAL (Dockerized Fork)
+### This is a fork of [risksense/mulval](https://github.com/risksense/mulval) updated for modern environments.
+
+---
+
+## 🐳 Usage with Docker
+
+This project is fully containerized using **Ubuntu 20.04** to ensure all legacy dependencies (XSB, Python 2, and GraphViz) work out of the box without polluting your host system.
+
+### 1. Build the Image
+```bash
+docker build -t mulval-ubuntu .
+```
+
+### 2. Run an Analysis
+Mount your input files and a local output directory to the container. The container automatically directs all generated artifacts to the `/output` mount.
+
+```bash
+# Create a directory for results
+mkdir -p output
+
+# Run MulVAL on a test case
+docker run --rm \
+  -v $(pwd)/testcases:/input \
+  -v $(pwd)/output:/output \
+  mulval-ubuntu /input/3host/input.P -v
+```
+
+### 3. View Results
+Generated files will appear in your local `output/` folder:
+- **AttackGraph.pdf**: Visual attack graph (generated when `-v` is used).
+- **AttackGraph.txt**: Textual representation.
+- **AttackGraph.xml**: XML representation.
+- **VERTICES.CSV / ARCS.CSV**: Raw graph data.
+
+The `output/` directory is included in `.gitignore` to keep your repository clean.
+
+---
+
+## Original Documentation
 
 To run MulVAL, you need to install the XSB logic engine from http://xsb.sourceforge.net/
 You will also need to check whether GraphViz is already installed on your system by typing
