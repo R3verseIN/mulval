@@ -10,8 +10,10 @@ MulVAL is an open-source tool for automated vulnerability analysis. This is a fo
 
 The easiest way to use MulVAL is through the interactive web interface.
 
-### 1. Build the Workbench
+### 1. Clone and Build
 ```bash
+git clone https://github.com/R3verseIN/mulval
+cd mulval
 docker build -t mulval-workbench .
 ```
 
