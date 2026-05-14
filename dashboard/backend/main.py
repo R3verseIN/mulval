@@ -50,6 +50,49 @@ async def run_mulval(filename: str):
 
         os.makedirs("/output", exist_ok=True)
         
+        # --- CVE RESOLUTION STEP ---
+        # Scan input_path for vulExists(..., 'CVE-XXXX', ...) and enrich it
+        try:
+            with open(input_path, "r") as f:
+                content = f.read()
+            
+            import re
+            import pymysql
+            
+            # Find all CVE patterns in single quotes
+            cve_ids = re.findall(r"'CVE-\d{4}-\d+'", content)
+            cve_ids = [c.strip("'") for c in cve_ids]
+            
+            if cve_ids:
+                yield f"data: 🔍 Resolving properties for {len(cve_ids)} CVEs from local NVD database...\n\n"
+                conn = pymysql.connect(host='localhost', user='root', password='root', database='nvd')
+                with conn.cursor() as cursor:
+                    placeholders = ', '.join(['%s'] * len(cve_ids))
+                    cursor.execute(f"SELECT id, rng, lose_types FROM nvd WHERE id IN ({placeholders})", tuple(cve_ids))
+                    rows = cursor.fetchall()
+                    
+                    if rows:
+                        enriched_facts = "\n/* Automatically resolved from NVD Database */\n"
+                        for row in rows:
+                            cve_id, rng_str, lose_str = row
+                            # Split multiple ranges/consequences if they exist
+                            ranges = rng_str.split(',')
+                            losses = lose_str.split(',')
+                            for r in ranges:
+                                for l in losses:
+                                    if r and l:
+                                        enriched_facts += f"vulProperty('{cve_id}', {r}, {l}).\n"
+                        
+                        with open(input_path, "a") as f:
+                            f.write(enriched_facts)
+                        yield f"data: ✅ Successfully enriched input with {len(rows)} vulnerability properties.\n\n"
+                    else:
+                        yield f"data: ⚠️ No properties found in DB for these CVEs. Using manual facts only.\n\n"
+                conn.close()
+        except Exception as e:
+            yield f"data: ⚠️ CVE Resolution failed: {e}\n\n"
+        # ---------------------------
+
         # Build the command
         # We run it via bash to get full environment
         cmd = ["bash", "/opt/mulval/utils/graph_gen.sh", input_path, "-v"]

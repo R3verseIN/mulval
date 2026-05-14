@@ -40,6 +40,9 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies (Ubuntu 22.04 has Python 3.10 by default)
+RUN echo "mysql-server mysql-server/root_password password root" | debconf-set-selections && \
+    echo "mysql-server mysql-server/root_password_again password root" | debconf-set-selections
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
     && add-apt-repository universe \
@@ -53,6 +56,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-font-utils \
     curl ca-certificates \
     gcc g++ make \
+    mysql-server \
+    python3-pymysql \
+    xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # Map python to python2 for legacy scripts
@@ -83,6 +89,15 @@ COPY --from=mulval-builder /opt/mulval/src/analyzer ./src/analyzer
 # 3. Copy Backend & Frontend
 COPY dashboard/backend ./dashboard/backend
 COPY --from=frontend-builder /app/out ./dashboard/frontend/out
+
+# 4. Setup MySQL Database and Sync NVD
+# This starts the daemon temporarily to seed the DB
+RUN echo "jdbc:mysql://localhost:3306/nvd\nroot\nroot" > /opt/mulval/config.txt && \
+    usermod -d /var/lib/mysql mysql && \
+    chown -R mysql:mysql /var/lib/mysql && \
+    service mysql start && \
+    mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS nvd" && \
+    PYTHONUNBUFFERED=1 python3 /opt/mulval/utils/nvd_sync.py
 
 # Final Setup
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh

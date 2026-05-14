@@ -9,6 +9,27 @@ for arg in "$@"; do
     fi
 done
 
+# Ensure MySQL is running
+echo "🗄️ Starting MySQL Service..."
+mkdir -p /var/run/mysqld /var/log/mysql
+# Clean up stale sockets that might cause "Another process is using unix socket file" error
+rm -f /var/run/mysqld/mysqld.sock /var/run/mysqld/mysqld.sock.lock /var/run/mysqld/mysqlx.sock /var/run/mysqld/mysqlx.sock.lock
+usermod -d /var/lib/mysql mysql > /dev/null 2>&1
+chown -R mysql:mysql /var/lib/mysql /var/run/mysqld /var/log/mysql
+/usr/bin/mysqld_safe --user=mysql > /var/log/mysql/mysqld_safe.log 2>&1 &
+# Wait for MySQL to be ready
+COUNTER=0
+until mysqladmin ping -h"localhost" --silent; do
+    COUNTER=$((COUNTER+1))
+    echo "   ...waiting for MySQL to be ready ($COUNTER)..."
+    if [ $COUNTER -gt 15 ]; then
+        echo "❌ ERROR: MySQL failed to start. Surfacing error log:"
+        cat /var/log/mysql/error.log
+        exit 1
+    fi
+    sleep 2
+done
+
 if [ "$WEB_MODE" = true ]; then
     echo "🌐 Starting MulVAL Web Dashboard..."
     echo "Connect to http://localhost:8080"
