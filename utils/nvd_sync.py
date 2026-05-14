@@ -74,7 +74,7 @@ def process_cve(item):
         av = cvss.get("accessVector", "undefined")
         if av == "NETWORK": rge = "'remoteExploit'"
         elif av == "ADJACENT_NETWORK": rge = "'lan'"
-        elif av == "LOCAL": rge = "'local'"
+        elif av == "LOCAL": rge = "'localExploit'"
 
         # lose_types (Confidentiality, Integrity, Availability)
         losses = []
@@ -103,8 +103,8 @@ def process_cve(item):
         av = cvss.get("attackVector", "undefined")
         if av == "NETWORK": rge = "'remoteExploit'"
         elif av == "ADJACENT_NETWORK": rge = "'lan'"
-        elif av == "LOCAL": rge = "'local'"
-        elif av == "PHYSICAL": rge = "'local'"
+        elif av == "LOCAL": rge = "'localExploit'"
+        elif av == "PHYSICAL": rge = "'localExploit'"
 
         losses = []
         if cvss.get("availabilityImpact") in ["LOW", "HIGH"]:

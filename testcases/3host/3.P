@@ -1,0 +1,20 @@
+attackerLocated(internet).
+attackGoal(execCode(fileServer, root)).
+
+/* --- Network Topology --- */
+hacl(internet, webServer, tcp, 80).
+hacl(webServer, dbServer, tcp, 8080).
+hacl(dbServer, fileServer, tcp, 8111).
+
+/* --- Step 1: Web Gateway (2022 Remote) --- */
+networkServiceInfo(webServer, apache_text, tcp, 80, webuser).
+vulExists(webServer, 'CVE-2022-42889', apache_text).
+
+/* --- Step 2: Internal App (2023 Remote) --- */
+networkServiceInfo(dbServer, internal_app, tcp, 8080, dbuser).
+vulExists(dbServer, 'CVE-2023-22515', internal_app).
+
+/* --- Step 3: File Server (2024 Remote RCE) --- */
+/* CVE-2024-27198 is a major Remote Code Execution vulnerability */
+networkServiceInfo(fileServer, teamcity, tcp, 8111, root).
+vulExists(fileServer, 'CVE-2024-27198', teamcity).
