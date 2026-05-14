@@ -16,7 +16,7 @@ if [ "$WEB_MODE" = true ]; then
     # We need to run the FastAPI server
     # We assume it's installed via uv in the Dockerfile
     cd /opt/mulval/dashboard/backend
-    uv run uvicorn main:app --host 0.0.0.0 --port 8080
+    python3 -m uvicorn main:app --host 0.0.0.0 --port 8080
 else
     # CLI MODE (Existing logic)
     INPUT_FILE="$1"

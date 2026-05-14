@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+
+# Build Outputs
+.next/
+out/
+dist/
+build/
+bin/
+*.eps
+*.pdf
+*.svg
+*.dot
+
+# IDEs and Tools
+.git/
+.vscode/
+.idea/
+.gemini/
+.python-version
+uv.lock
+bun.lockb
+
+# Local Outputs
+output/
+testcases/web/
+
+# MulVAL intermediate files
+src/**/*.o
+src/**/*.a
+src/attack_graph/attack_graph
+src/adapter/XMLConstructor.class

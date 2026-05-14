@@ -285,8 +285,10 @@ if [ -f trace_output.P ]; then
 	$MULVALROOT/utils/load_policy.sh 
     fi
 else
-    echo "The attack simulation encountered an error."
-    echo "Please check xsb_log.txt."
+    echo "❌ ERROR: The attack simulation encountered an error."
+    echo "--- Surfacing XSB Logs (xsb_log.txt) ---"
+    cat xsb_log.txt
+    echo "----------------------------------------"
     exit 2
 fi
 

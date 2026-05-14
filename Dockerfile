@@ -19,11 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /opt/mulval
 COPY . .
-
-# Set MULVALROOT so legacy Makefiles find the /lib directory
 ENV MULVALROOT=/opt/mulval
-
-# Applying non-invasive legacy patches via sed
 RUN sed -i 's/fa >0/fa != NULL/g' src/attack_graph/attack_graph.cpp && \
     sed -i 's/g++ /g++ -std=c++11 -fpermissive -fcommon /g' src/attack_graph/Makefile && \
     sed -i 's/gcc /gcc -fcommon /g' src/attack_graph/Makefile && \
@@ -34,50 +30,63 @@ RUN sed -i 's/fa >0/fa != NULL/g' src/attack_graph/attack_graph.cpp && \
 # --- Stage 3: Frontend Builder ---
 FROM oven/bun:latest AS frontend-builder
 WORKDIR /app
-# Copy only lock and package first for better caching
 COPY dashboard/frontend/package.json dashboard/frontend/bun.lock ./
 RUN bun install --frozen-lockfile
 COPY dashboard/frontend .
 RUN bun run build
 
 # --- Stage 4: Final Runtime ---
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install runtime dependencies only
+# Install system dependencies (Ubuntu 22.04 has Python 3.10 by default)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    && add-apt-repository universe \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
     python2 \
     openjdk-11-jre-headless \
     graphviz \
     ghostscript \
     texlive-font-utils \
     curl ca-certificates \
+    gcc g++ make \
     && rm -rf /var/lib/apt/lists/*
 
 # Map python to python2 for legacy scripts
 RUN ln -s /usr/bin/python2 /usr/bin/python
 
-# Install uv for the dashboard backend
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.local/bin:${PATH}"
+# Install backend dependencies directly into system python
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+WORKDIR /app
+COPY dashboard/backend/pyproject.toml dashboard/backend/uv.lock ./
+RUN uv pip install --system --no-cache -r pyproject.toml
 
-# Copy built components
-COPY --from=xsb-builder /opt/XSB /opt/XSB
-COPY --from=mulval-builder /opt/mulval /opt/mulval
-COPY --from=frontend-builder /app/out /opt/mulval/dashboard/frontend/out
-
-# Set Environment Variables
+# Environment Setup
+WORKDIR /opt/mulval
 ENV MULVALROOT=/opt/mulval
-ENV PATH="${PATH}:/opt/XSB/bin:${MULVALROOT}/bin:${MULVALROOT}/utils"
+ENV PATH="${PATH}:/opt/mulval/bin:/opt/mulval/utils:/opt/XSB/bin"
 
-# Sync backend dependencies
-WORKDIR /opt/mulval/dashboard/backend
-RUN uv sync
+# 1. Copy XSB
+COPY --from=xsb-builder /opt/XSB /opt/XSB
 
-# Setup entrypoint and output
+# 2. Copy MulVAL Essentials
+COPY --from=mulval-builder /opt/mulval/bin ./bin
+COPY --from=mulval-builder /opt/mulval/lib ./lib
+COPY --from=mulval-builder /opt/mulval/kb ./kb
+COPY --from=mulval-builder /opt/mulval/utils ./utils
+COPY --from=mulval-builder /opt/mulval/testcases ./testcases
+COPY --from=mulval-builder /opt/mulval/src/analyzer ./src/analyzer
+
+# 3. Copy Backend & Frontend
+COPY dashboard/backend ./dashboard/backend
+COPY --from=frontend-builder /app/out ./dashboard/frontend/out
+
+# Final Setup
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh && \
-    mkdir -p /output /opt/mulval/testcases/web
+RUN chmod +x /usr/local/bin/entrypoint.sh && mkdir -p /output
 WORKDIR /output
 
 EXPOSE 8080

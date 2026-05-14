@@ -1,6 +1,7 @@
 import subprocess
 import os
 import asyncio
+import shutil
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,6 +37,17 @@ async def run_mulval(filename: str):
     
     async def event_generator():
         # Clear old output directory to avoid confusion
+        if os.path.exists("/output"):
+            for item in os.listdir("/output"):
+                item_path = os.path.join("/output", item)
+                try:
+                    if os.path.isfile(item_path) or os.path.islink(item_path):
+                        os.unlink(item_path)
+                    elif os.path.isdir(item_path):
+                        shutil.rmtree(item_path)
+                except Exception as e:
+                    yield f"data: ⚠️ Warning: Could not clear {item}: {e}\n\n"
+
         os.makedirs("/output", exist_ok=True)
         
         # Build the command
