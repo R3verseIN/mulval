@@ -2,6 +2,8 @@
 
 MulVAL is an open-source tool for automated vulnerability analysis. This is a fork of [risksense/mulval](https://github.com/risksense/mulval) updated with a **Web Dashboard**, a high-performance **Parallel NVD Sync**, and full **Docker containerization**.
 
+![MulVAL Modern Dashboard](media/screenshot.png)
+
 ---
 
 ## 🚀 Quick Start (Web Dashboard)
