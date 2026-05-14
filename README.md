@@ -1,11 +1,30 @@
-# MulVAL (Dockerized Fork)
-### This is a fork of [risksense/mulval](https://github.com/risksense/mulval) updated for modern environments.
+# MulVAL: Modernized Vulnerability Analysis
+
+MulVAL is an open-source tool for automated vulnerability analysis. This is a fork of [risksense/mulval](https://github.com/risksense/mulval) updated with a **Web Dashboard**, a high-performance **Parallel NVD Sync**, and full **Docker containerization**.
 
 ---
 
-## 🐳 Usage with Docker
+## 🚀 Quick Start (Web Dashboard)
 
-This project is fully containerized using **Ubuntu 20.04** to ensure all legacy dependencies (XSB, Python 2, and GraphViz) work out of the box without polluting your host system.
+The easiest way to use MulVAL is through the interactive web interface.
+
+### 1. Build the Workbench
+```bash
+docker build -t mulval-workbench .
+```
+
+### 2. Launch the Dashboard
+```bash
+docker run --rm -p 8080:8080 -v $(pwd)/output:/output mulval-workbench --web
+```
+Visit **http://localhost:8080** to edit Datalog files and view attack graphs in real-time.
+
+### 3. Modern NVD Sync
+The build process automatically populates a local MySQL database with vulnerability data from 2002 to the current year using a high-performance, multithreaded Python engine. The dashboard automatically resolves CVE properties from this database.
+
+---
+
+## 🐳 CLI Usage (Original Docker Logic)
 
 ### 1. Build the Image
 ```bash
